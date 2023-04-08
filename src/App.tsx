@@ -3,32 +3,41 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 
-const createUserFormSchema = z.object({
-  name: z
-    .string()
-    .nonempty('O nome é obrigatório')
-    .transform((name) =>
-      name
-        .trim()
-        .split(' ')
-        .map((word) => {
-          return word[0].toUpperCase().concat(word.substring(1))
-        })
-        .join(' '),
-    ),
-  email: z
-    .string()
-    .nonempty('O e-mail é obrigatório')
-    .toLowerCase()
-    .email('Formato de e-mail inválido'),
-  password: z.string().min(6, 'A senha precisa de no mínimo 6 caracteres'),
-  confirmPassword: z
-    .string()
-    .min(6, 'A senha precisa de no mínimo 6 caracteres')
-    .superRefine((pass) => {
-      // Task: make confirm password
-    }),
-})
+const createUserFormSchema = z
+  .object({
+    name: z
+      .string()
+      .nonempty('O nome é obrigatório')
+      .transform((name) =>
+        name
+          .trim()
+          .split(' ')
+          .map((word) => {
+            return word[0].toUpperCase().concat(word.substring(1))
+          })
+          .join(' '),
+      ),
+    email: z
+      .string()
+      .nonempty('O e-mail é obrigatório')
+      .toLowerCase()
+      .email('Formato de e-mail inválido'),
+    password: z.string().min(6, 'A senha precisa de no mínimo 6 caracteres'),
+    confirmPassword: z
+      .string()
+      .min(6, 'A senha precisa de no mínimo 6 caracteres'),
+
+    // Task: make confirm password
+  })
+  .superRefine((arg, ctz) => {
+    if (arg.password !== arg.confirmPassword) {
+      ctz.addIssue({
+        code: 'custom',
+        path: ['confirmPassword'],
+        message: 'Senhas diferentes',
+      })
+    }
+  })
 
 type CreateUserFormData = z.infer<typeof createUserFormSchema>
 
