@@ -30,10 +30,16 @@ const createUserFormSchema = z
       .array(
         z.object({
           title: z.string().nonempty('O titulo é obrigatório'),
-          knowledge: z.coerce.number().min(1, 'Min é 1').max(10, 'max é 10'),
+          knowledge: z.coerce.number().min(1, 'Min é 1').max(100, 'max é 100'),
         }),
       )
-      .min(2, 'insira pelo menos 2 tecnologias'),
+      .min(2, 'insira pelo menos 2 tecnologias')
+      .refine((techs) => {
+        return techs.every(
+          (tech) =>
+            techs.filter((item) => item.title === tech.title).length < 2,
+        )
+      }, 'Só pode uma tecnologia de cada'),
   })
   .superRefine((arg, ctz) => {
     if (arg.password !== arg.confirmPassword) {
@@ -66,7 +72,7 @@ export function App() {
     append({ title: '', knowledge: 0 })
   }
 
-  function createUser(data: any) {
+  function createUser(data: CreateUserFormData) {
     console.log(data)
   }
 
@@ -129,7 +135,7 @@ export function App() {
             </span>
           )}
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 space-y-4">
           <label htmlFor="" className="flex items-center justify-between">
             Tecnologias
             <button
@@ -144,8 +150,9 @@ export function App() {
           </label>
           {fields.map((field, index) => {
             return (
-              <div key={field.id} className="flex  gap-2 my-3">
-                <div className="flex-1">
+              <div key={field.id} className="flex gap-2 items-center ">
+                <div className="flex-1 flex flex-col ">
+                  <label htmlFor="title">Nome</label>
                   <input
                     type="text"
                     className="w-full border border-transparent focus:border-emerald-600 shadow-sm 
@@ -158,7 +165,8 @@ export function App() {
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="flex flex-col">
+                  <label htmlFor="knowledge">Nível</label>
                   <input
                     type="number"
                     className="w-16 border border-transparent focus:border-emerald-600 shadow-sm 
